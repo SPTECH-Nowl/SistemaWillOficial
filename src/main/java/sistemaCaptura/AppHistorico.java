@@ -20,7 +20,7 @@ public class AppHistorico {
 
         do {
             System.out.println("-".repeat(15));
-            System.out.println("Bem-vindo ao sistema Nowl");
+            System.out.println("Bem-vindo ao sistema Nowl-Will Dantas");
             System.out.println("Escolha uma das opções abaixo");
             System.out.println("1 - Fazer login");
             System.out.println("2 - Sair");
