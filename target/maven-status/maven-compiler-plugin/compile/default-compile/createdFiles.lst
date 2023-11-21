@@ -4,6 +4,7 @@ sistemaCaptura\PermissaoProcesso.class
 sistemaCaptura\user\Usuario.class
 sistemaCaptura\user\Adiministrador.class
 sistemaCaptura\log\metodos\Logs.class
+sistemaCaptura\conexao\ConexãoSql.class
 sistemaCaptura\conexao\Conexao.class
 sistemaCaptura\Componente.class
 sistemaCaptura\Permissao.class
