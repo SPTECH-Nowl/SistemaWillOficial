@@ -12,6 +12,7 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.text.DecimalFormat;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -55,59 +56,89 @@ public class HistConsmRecurso {
 
                 double usoDouble = looca.getProcessador().getUso();
                 int consumoCpu = (int) Math.round(usoDouble);
-                long consumoRam = looca.getMemoria().getEmUso();
-                long consumoDisco = looca.getGrupoDeDiscos().getTamanhoTotal();
+                double consumoRam = looca.getMemoria().getEmUso().doubleValue();
+                double consumoDisco = looca.getGrupoDeDiscos().getTamanhoTotal().doubleValue();
                 Integer qtdJanelasAbertas = looca.getGrupoDeJanelas().getTotalJanelas();
                 dataHora = LocalDateTime.now();
+
+
 
                 List<Componente> componentes = con.query("SELECT * FROM componente WHERE fkMaquina = ?",
                         new BeanPropertyRowMapper<>(Componente.class), maquinaId);
                 MonitorarSoftware(maquinaId, nomeAula);
+                if (componentes.size() >= 3) {
+                    String motivoComponentes = ":--SUCCESS: O sistema localizou os 3 componentes para ser monitorados)!";
+                    logs.adicionarMotivo(motivoComponentes);
 
-                insertDadosNoBanco(componentes.get(0).getIdComponente(), consumoCpu, maquinaId, componentes.get(0).getFkHardware());
-                insertDadosNoBanco(componentes.get(1).getIdComponente(), consumoRam, maquinaId, componentes.get(1).getFkHardware());
-                insertDadosNoBanco(componentes.get(2).getIdComponente(), consumoDisco, maquinaId, componentes.get(2).getFkHardware());
+                    List<Hardware> hardwares = con.query("SELECT * FROM hardware ",
+                            new BeanPropertyRowMapper<>(Hardware.class));
+
+                    double Ram = 0.0;
+                    double bytes = consumoRam / 8.00;
+                    double gigabytes = bytes / (1024.0 * 1024 * 1024);
+                    double valorNormalizado = gigabytes / hardwares.get(1).getCapacidade();
+                    Ram = valorNormalizado * 100;
+                    double Disco = 0.0;
+                    double bytes2 = consumoDisco / 8.00;
+                    double gigabytes2 = bytes2 / (1024.0 * 1024 * 1024);
+                    double valorNormalizado2 = gigabytes2 / hardwares.get(2).getCapacidade();
+                    Disco = valorNormalizado2 * 100;
+                    DecimalFormat df = new DecimalFormat("#.##");
+
+                    // Formatando o número com duas casas decimais
+                    double ramFormatada = Math.round(Ram * 100.0) / 100.0;
+                    double discoFormatada = Math.round(Disco * 100.0) / 100.0;
+                    insertDadosNoBanco(componentes.get(0).getIdComponente(), consumoCpu, maquinaId, componentes.get(0).getFkHardware());
+                    insertDadosNoBanco(componentes.get(1).getIdComponente(), ramFormatada, maquinaId, componentes.get(1).getFkHardware());
+                    insertDadosNoBanco(componentes.get(2).getIdComponente(), discoFormatada, maquinaId, componentes.get(2).getFkHardware());
 
 
-                List<Hardware> hardwares = con.query("SELECT * FROM hardware ",
-                        new BeanPropertyRowMapper<>(Hardware.class));
-
-                mostrarDadosEmTabela(consumoCpu, consumoRam, consumoDisco, qtdJanelasAbertas, hardwares.get(1), hardwares.get(2));
 
 
-                try {
-                    verificarLimiteEEnviarNotificacao("CPU", consumoCpu, componentes.get(0).getMax(), hardwares.get(0));
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
-                } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
+
+
+                    mostrarDadosEmTabela(consumoCpu, consumoRam, consumoDisco, qtdJanelasAbertas, hardwares.get(1), hardwares.get(2));
+
+
+                    try {
+                        verificarLimiteEEnviarNotificacao("CPU", consumoCpu, componentes.get(0).getMax(), hardwares.get(0));
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    } catch (InterruptedException e) {
+                        throw new RuntimeException(e);
+                    }
+                    try {
+                        verificarLimiteEEnviarNotificacao("RAM", consumoRam, componentes.get(1).getMax(), hardwares.get(1));
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    } catch (InterruptedException e) {
+                        throw new RuntimeException(e);
+                    }
+                    try {
+                        verificarLimiteEEnviarNotificacao("Disco", consumoDisco, componentes.get(2).getMax(), hardwares.get(2));
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    } catch (InterruptedException e) {
+                        throw new RuntimeException(e);
+                    }
+                    try {
+                        verificarLimiteEEnviarNotificacao("Quantidade janelas", qtdJanelasAbertas, 15, hardwares.get(0));
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    } catch (InterruptedException e) {
+                        throw new RuntimeException(e);
+                    }
+
+                    Maquina maquina = obterMaquina(maquinaId);
+
+                    // Chamar a função para criar e gravar no arquivo
+                    logs.gerarLog(maquina, (long) consumoCpu, consumoRam, consumoDisco);
+                }else{
+                    String motivoComponentes = ":--ERROR: a maquina com o ID:("+maquinaId+") não possui 3 componentes para ser monitorados)!";
+                    logs.adicionarMotivo(motivoComponentes);
+                    fecharSistema();
                 }
-                try {
-                    verificarLimiteEEnviarNotificacao("RAM", consumoRam, componentes.get(1).getMax(), hardwares.get(1));
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
-                } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
-                }
-                try {
-                    verificarLimiteEEnviarNotificacao("Disco", consumoDisco, componentes.get(2).getMax(), hardwares.get(2));
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
-                } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
-                }
-                try {
-                    verificarLimiteEEnviarNotificacao("Quantidade janelas", qtdJanelasAbertas, 15, hardwares.get(0));
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
-                } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
-                }
 
-                Maquina maquina = obterMaquina(maquinaId);
-
-                // Chamar a função para criar e gravar no arquivo
-                logs.gerarLog(maquina, (long) consumoCpu, consumoRam, consumoDisco);
             }
         }, 1000, 10000);
     }
@@ -118,7 +149,7 @@ public class HistConsmRecurso {
         con.update(sql, dataHora, consumo, numeroMaquina, tipohardware, componente);
     }
 
-    private void mostrarDadosEmTabela(int consumoCpu, long consumoRam, long consumoDisco, int qtdJanelasAbertas, Hardware hardware1, Hardware hardware2) {
+    private void mostrarDadosEmTabela(int consumoCpu, double consumoRam, double consumoDisco, int qtdJanelasAbertas, Hardware hardware1, Hardware hardware2) {
 
 
         double Ram = 0.0;
@@ -150,7 +181,7 @@ public class HistConsmRecurso {
         System.out.println("+---------------------+--------------+-----------------+-------------+----------------------+");
     }
 
-    private void verificarLimiteEEnviarNotificacao(String componente, long consumo, int limite, Hardware hardware) throws IOException, InterruptedException {
+    private void verificarLimiteEEnviarNotificacao(String componente, double consumo, int limite, Hardware hardware) throws IOException, InterruptedException {
         final Boolean[] timeoutAtivo = {false};
         double porcentagem = 0.0;
         if (componente.equals("RAM")) {
@@ -211,19 +242,18 @@ public class HistConsmRecurso {
                         for (Maquina.Processo processo : obterProcessos(nomeAula)) {
                             if (linhaBusca.contains(processo.getNomeAplicativo())) {
                                 strike[0] = true;
-                                System.out.println(processo.getNomeAplicativo());
                                 nomeUltimoProcesso[0] = processo.getNomeAplicativo();
                             }
                         }
                     }
-                    if (strike[0] == true){
+                    if (strike[0] == true) {
                         LocalDateTime dataHora = LocalDateTime.now();
                         cadastrarStrike(idMaquina, dataHora);
                         botSlack.mensagemSoftware(nomeUltimoProcesso[0], obterMaquina(idMaquina));
                         System.out.println("Strike");
                         timer.cancel(); // Cancela o timer após cadastrar um "strike"
-                    }else{
-                        System.out.println("Você esta sem nenhum strike!!");
+                    } else {
+                        System.out.println("Você esta limpo amigo");
                     }
                 } catch (IOException e) {
                     e.printStackTrace();
@@ -235,7 +265,7 @@ public class HistConsmRecurso {
     }
 
     private List<Maquina.Processo> obterProcessos(String nomeAula) {
-        return con.query("SELECT idProcesso, nomeProcesso, nomeAplicativo FROM processo JOIN permissaoProcesso ON idprocesso = fkProcesso WHERE fkPermissao=(SELECT idPermissao FROM permissao WHERE nome = ?)",
+        return con.query("SELECT idProcesso, nomeProcesso, nomeAplicativo FROM processo INNER JOIN permissaoProcesso ON idprocesso = fkProcesso WHERE fkPermissao=(SELECT idPermissao FROM permissao WHERE nome = ?)",
                 new BeanPropertyRowMapper<>(Maquina.Processo.class), nomeAula);
     }
 

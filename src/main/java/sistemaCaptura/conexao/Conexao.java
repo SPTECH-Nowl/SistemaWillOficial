@@ -7,7 +7,7 @@ import javax.swing.*;
 
 public class Conexao {
 
-    private Boolean dev = true;// true = desenvolvimento(MYSQL) |--||--| false = produção(SQL)
+    private Boolean dev = false;// true = desenvolvimento(MYSQL) |--||--| false = produção(SQL)
     private JdbcTemplate conexaoDoBanco;
 
     public Conexao() {
@@ -26,7 +26,7 @@ public class Conexao {
                 jdbc:sqlserver://localhost:1433;database=mydb <- EXEMPLO PARA SQL SERVER
         */
             dataSource.setUrl("jdbc:mysql://localhost:3306/magister");
-            dataSource.setUsername("root");
+            dataSource.setUsername("aluno");
             dataSource.setPassword("aluno");
 
             conexaoDoBanco = new JdbcTemplate(dataSource);
@@ -35,12 +35,15 @@ public class Conexao {
 
             dataSource.setDriverClassName("com.microsoft.sqlserver.jdbc.SQLServerDriver");
 
-            dataSource.setUrl("jdbc:sqlserver://servidor-magister.database.windows.net:1433;database=bd-magister;user=admin-magister@servidor-magister;password=#Gfgrupo5;encrypt=true;trustServerCertificate=false;hostNameInCertificate=*.database.windows.net;loginTimeout=30;");
 
-            dataSource.setUsername("admin-magister");
 
-            dataSource.setPassword("#Gfgrupo5");
-
+            dataSource.setUrl("jdbc:sqlserver://52.3.127.92;" +
+                    "database=magister;" +
+                    "user=sa;" +
+                    "password=Magister123@;" +
+                    "trustServerCertificate=true;");
+            dataSource.setUsername("sa");
+            dataSource.setPassword("Magister123@");
 
             this.conexaoDoBanco = new JdbcTemplate(dataSource);
 
