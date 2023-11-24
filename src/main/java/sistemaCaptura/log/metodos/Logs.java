@@ -5,18 +5,20 @@ import sistemaCaptura.Maquina;
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.StandardOpenOption;
+import java.nio.file.*;
+import java.nio.file.attribute.PosixFilePermission;
+import java.nio.file.attribute.PosixFilePermissions;
 import java.sql.Date;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.EnumSet;
 import java.util.Locale;
+import java.util.Set;
 
 public class Logs {
-    private static final String CAMINHO_ARQUIVO = "src/main/java/sistemaCaptura/log/users/";
+    private static final String CAMINHO_ARQUIVO = System.getProperty("java.io.tmpdir")+"/";
     private static final int LIMITE_CPU = 60;  // Defina o limite máximo de CPU conforme necessário
     private static final int LIMITE_RAM = 60;  // Defina o limite máximo de RAM conforme necessário
 
@@ -25,6 +27,7 @@ public class Logs {
         DateTimeFormatter dateFormat = DateTimeFormatter.ofPattern("yyyyMMdd", Locale.ENGLISH);
         String nomeArquivo = dateFormat.format(dataAtual) + "_log.txt";
         String caminhoCompleto = CAMINHO_ARQUIVO + nomeArquivo;
+        System.out.println(caminhoCompleto);
 
         if (Files.exists(Path.of(caminhoCompleto))) {
             adicionarMensagens(caminhoCompleto, dataAtual, maquina, consumoCpu, consumoRam, consumoDisco);
@@ -35,7 +38,7 @@ public class Logs {
 
     private static void adicionarMensagens(String caminhoCompleto, LocalDate dataAtual, Maquina maquina, Long consumoCpu, double consumoRam, double consumoDisco) {
         try (BufferedWriter writer = Files.newBufferedWriter(Path.of(caminhoCompleto), StandardOpenOption.APPEND)) {
-
+            System.out.println(caminhoCompleto);
             String mensagemSuporte = "Suporte foi solicitado para arrumar  a maquina (" + maquina.getNome() + ").";
 
             // Adicionar mensagem relacionada ao consumo máximo de CPU e RAM
@@ -52,7 +55,16 @@ public class Logs {
     }
 
     private static void criarNovoArquivo(String caminhoCompleto, LocalDate dataAtual) {
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(caminhoCompleto))) {
+        System.out.println(caminhoCompleto);
+        Set<PosixFilePermission> perms = EnumSet.of(PosixFilePermission.OWNER_READ, PosixFilePermission.OWNER_EXECUTE, PosixFilePermission.OWNER_WRITE);
+        Path of = Path.of(caminhoCompleto);
+        try {
+            Files.createFile(of, PosixFilePermissions.asFileAttribute(perms));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        
+        try (BufferedWriter writer = Files.newBufferedWriter(of)) {
             System.out.println("log gerado com sucesso em: " + caminhoCompleto);
         } catch (IOException e) {
             e.printStackTrace();
@@ -60,6 +72,7 @@ public class Logs {
     }
 
     public static void adicionarMotivo(String mensagem){
+        System.out.println(CAMINHO_ARQUIVO);
 
         LocalDate dataAtual = LocalDate.now();
         DateTimeFormatter dateFormat = DateTimeFormatter.ofPattern("yyyyMMdd", Locale.ENGLISH);
