@@ -33,7 +33,7 @@ public class HistConsmRecurso {
     Timer timer = new Timer();
     Timer timer02 = new Timer();
 
-    BotSlack botSlack = new BotSlack("xoxb-6077098544578-6249289926579-6x7cPWRKwGA860AQbKZ4vpiq","D062Y2QFNE4");
+    BotSlack botSlack = new BotSlack("xoxb-6077098544578-6249289926579-RibvLIN6DoAhk8q2nFVrsvVz","D062Y2QFNE4");
     Logs logs = new Logs();
     Integer qtdStrike=0;
     public HistConsmRecurso() {
