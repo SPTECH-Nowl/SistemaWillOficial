@@ -31,16 +31,23 @@ public class AppHistorico {
         String motivoComeco = ":--SUCCESS: O Sistema iniciou normalmente";
         logs.adicionarMotivo(motivoComeco);
         do {
-            System.out.println("-".repeat(15));
-            System.out.println("Bem-vindo ao sistema Nowl");
+            System.out.println("+--------------------------------------------------------------------+");
+            System.out.println("|                                                                    |");
+            System.out.println("|                           MAGISTER                                 |");
+            System.out.println("|                                                                    |");
+            System.out.println("|             Obrigado por usar o nosso sistema                      |");
+            System.out.println("|          Tenha um ótimo dia e uma vida incrível                    |");
+            System.out.println("|                                                                    |");
+            System.out.println("|                                                                    |");
+            System.out.println("+--------------------------------------------------------------------+");
             System.out.println("Escolha uma das opções abaixo");
             System.out.println("1 - Fazer login");
             System.out.println("2 - Sair");
-            System.out.println("3 - Cadastrar máquina");
-            System.out.println("4 - Visualizar e Editar Perfil");
-            System.out.println("5 - Enviar sugestão do projeto");
+            System.out.println("3 - Visualizar e Editar Perfil");
+            System.out.println("4 - Enviar sugestão do projeto");
             System.out.println("-".repeat(15));
 
+            System.out.println("Digite um número para iniciar o sistema:");
             escolha = in.nextInt();
 
             switch (escolha) {
@@ -52,13 +59,10 @@ public class AppHistorico {
                     histConsmRecurso.fecharSistema();
                     break;
                 case 3:
-                    cadastrarMaquina(con);
-                    break;
-                case 4:
                     visualizarEditarPerfil(con);
                     break;
-                case 5:
-                    enviarSugestao(con, in);
+                case 4:
+                    enviarSugestao(con,in);
                     break;
                 default:
                     System.out.println("Opção inválida");
@@ -145,13 +149,13 @@ public class AppHistorico {
 
             if (usuarios.get(0).getFkTipoUsuario().equals(1)) {
                 usuario = new AdmNowl(usuarios.get(0));
-                System.out.println("Bem vindo ADM Nowl-" + usuario.getNome());
+                System.out.println("Bem vindo ADM Nowl" + usuario.getNome());
             } else if (usuarios.get(0).getFkTipoUsuario().equals(2)) {
                 usuario = new Adiministrador(usuarios.get(0));
-                System.out.println("Bem vindo ADM- " + usuario.getNome());
+                System.out.println("Bem vindo ADM " + usuario.getNome());
             } else if (usuarios.get(0).getFkTipoUsuario().equals(3)) {
                 usuario = new Professor(usuarios.get(0));
-                System.out.println("Bem vindo Professor- " + usuario.getNome());
+                System.out.println("Bem vindo Professor " + usuario.getNome());
             } else {
                 usuario = new Aluno(usuarios.get(0));
                 System.out.println("Bem vindo Usuario" + usuario.getNome());
@@ -160,31 +164,21 @@ public class AppHistorico {
 
             do {
                 System.out.println("-".repeat(15));
-
-//                if (usuario instanceof AdmNowl) {
-//                    System.out.println("Opções de ADM Nowl");
-//                    System.out.println("N1 - listar máquinas disponíveis de alguma empresa");
-//                    System.out.println("N2 - listar usuários de alguma empresa");
-//                    System.out.println("N3 - Cadastrar usuário ");
-//                }
-
-//                if (usuario instanceof Adiministrador) {
-//                    System.out.println("Opções de Administrador");
-//                    System.out.println("A1 - listar máquinas disponíveis da sua instituição");
-//                    System.out.println("A2 - listar máquinas em uso da sua instituição");
-//                    System.out.println("A3 - listar usuários da sua instituição");
-//                    System.out.println("A4 - Cadastrar usuário ");
-//                }
-//                if (usuario instanceof Professor) {
-//                    System.out.println("Opções de Professor");
-//                    System.out.println("P1 - listar máquinas disponíveis da sua instituição");
-//                    System.out.println("P2 - listar máquinas em uso da sua instituição");
-//                    System.out.println("AP3 - listar usuários da sua instituição");
-//                }
-
                 System.out.println("----------|| Opções do sistema ||----------");
                 System.out.println("1 - Ativar máquina");
-                System.out.println("2 - Fechar sistema");
+                if (usuario instanceof Professor) {
+                    System.out.println("2- Opções de Professor");
+                }
+                if (usuario instanceof Adiministrador) {
+                    System.out.println("2- Cadastrar maquina");
+                }
+                if (usuario instanceof AdmNowl) {
+                    System.out.println("2- Opções de ADM Nowl");
+                }
+                if (usuario instanceof Aluno) {
+                    System.out.println("2- Opções de Aluno");
+                }
+                System.out.println("3 - Fechar sistema");
                 System.out.println("-".repeat(15));
 
                 opcaoUsuario = in.nextInt();
@@ -223,11 +217,11 @@ public class AppHistorico {
                             numeroMaquina = numMaquina;
                             List<Permissao> permissaos;
                             if (conexao.getDev()) {
-                                permissaos = con.query("SELECT * FROM permissao WHERE emUso = 1",
-                                        new BeanPropertyRowMapper<>(Permissao.class));
+                                permissaos = con.query("SELECT * FROM permissao WHERE emUso = 1 AND fkUsuario =?",
+                                        new BeanPropertyRowMapper<>(Permissao.class),usuario.getIdUsuario());
                             } else {
-                                permissaos = con.query("SELECT * FROM permissao WHERE emUso = 1",
-                                        new BeanPropertyRowMapper<>(Permissao.class));
+                                permissaos = con.query("SELECT * FROM permissao WHERE emUso = 1 AND fkUsuario =?",
+                                        new BeanPropertyRowMapper<>(Permissao.class),usuario.getIdUsuario());
                             }
                             System.out.println("-".repeat(15));
                             for (Permissao permissao : permissaos) {
@@ -243,6 +237,20 @@ public class AppHistorico {
                             logs.adicionarMotivo(motivoMaquina);
                         }
                     case 2:
+                        if (usuario instanceof Professor) {
+                            ((Professor) usuario).opcaoProfessor();
+                        }
+                        if (usuario instanceof Adiministrador) {
+                            cadastrarMaquina(con);
+                        }
+                        if (usuario instanceof AdmNowl) {
+                            ((AdmNowl) usuario).opcaoAdmNowl();
+                        }
+                        if (usuario instanceof Aluno) {
+                            ((Aluno) usuario).opcaoAluno();
+                        }
+                        break;
+                    case 3:
                         desativarMaquina(con, numeroMaquina);
                         exibirMensagemDespedida();
                         histConsmRecurso.fecharSistema();// Isso encerrará o programa
@@ -250,7 +258,7 @@ public class AppHistorico {
                     default:
                         System.out.println("Opção inválida");
                 }
-            } while (opcaoUsuario != 2);
+            } while (opcaoUsuario != 3);
         } else {
             System.out.println("Dados de login inválidos");
 
@@ -274,6 +282,15 @@ public class AppHistorico {
             }
         } else {
             System.out.println("Máquina não disponível ou inválida.");
+        }
+    }
+
+    private static void desativarMaquina(JdbcTemplate con, Integer maquinaId) {
+        if (conexao.getDev()) {
+            con.update("UPDATE maquina SET emUso = 0 WHERE idMaquina = ?", maquinaId);
+        } else {
+            con.update("UPDATE maquina SET emUso = 0 WHERE idMaquina = ?", maquinaId);
+
         }
     }
 
@@ -356,15 +373,6 @@ public class AppHistorico {
         System.out.println("Sugestão enviada com sucesso!");
     }
 
-    private static void desativarMaquina(JdbcTemplate con, Integer maquinaId) {
-        if (conexao.getDev()) {
-            con.update("UPDATE maquina SET emUso = 0 WHERE idMaquina = ?", maquinaId);
-        } else {
-            con.update("UPDATE maquina SET emUso = 0 WHERE idMaquina = ?", maquinaId);
-
-        }
-    }
-
     private static void exibirMensagemDespedida() {
         System.out.println("+---------------------------------------------------------------+");
         System.out.println("|                            MAGISTER                           |");
@@ -410,9 +418,9 @@ public class AppHistorico {
         // Recuperar o ID da máquina recém-cadastrada
 
         // Cadastrar hardware e componente para a máquina
-        cadastrarHardwareEComponente(con, idMaquina);
-        cadastrarHardwareEComponente(con, idMaquina);
-        cadastrarHardwareEComponente(con, idMaquina);
+        cadastrarHardwareEComponente(con, idMaquina,1);
+        cadastrarHardwareEComponente(con, idMaquina,2);
+        cadastrarHardwareEComponente(con, idMaquina,3);
 
         System.out.println("Máquina cadastrada com sucesso!");
     }
@@ -440,50 +448,55 @@ public class AppHistorico {
         }
     }
 
-    private static void cadastrarHardwareEComponente(JdbcTemplate con, Integer idMaquina) {
+    private static void cadastrarHardwareEComponente(JdbcTemplate con, Integer idMaquina,Integer tipo) {
         Scanner leitor = new Scanner(System.in);
 
         // Cadastrar hardware
-        System.out.println("Digite o fabricante do hardware:");
+        if(tipo == 1){
+            System.out.println("Digite o fabricante do hardware(CPU):");
+        } else if (tipo ==2) {
+            System.out.println("Digite o fabricante do hardware(RAM):");
+        } else if (tipo ==3) {
+            System.out.println("Digite o fabricante do hardware(Disco):");
+        }
         String fabricante = leitor.nextLine();
-
-        System.out.println("Digite o modelo do hardware:");
+        if(tipo == 1){
+            System.out.println("Digite o modelo do hardware(CPU):");
+        } else if (tipo ==2) {
+            System.out.println("Digite o modelo do hardware(RAM):");
+        } else if (tipo ==3) {
+            System.out.println("Digite o modelo do hardware(Disco):");
+        }
         String modelo = leitor.nextLine();
-
-        System.out.println("Digite a capacidade do hardware:");
+        if(tipo == 1){
+            System.out.println("Digite a capacidade do hardware(CPU):");
+        } else if (tipo ==2) {
+            System.out.println("Digite a capacidade do hardware(RAM):");
+        } else if (tipo ==3) {
+            System.out.println("Digite a capacidade do hardware(Disco):");
+        }
         double capacidade = leitor.nextDouble();
-
-
-        System.out.println("Digite a especificidade do hardware:");
+        if(tipo == 1){
+            System.out.println("Digite a especificidade do hardware(CPU):");
+        } else if (tipo ==2) {
+            System.out.println("Digite a especificidade do hardware(RAM):");
+        } else if (tipo ==3) {
+            System.out.println("Digite a especificidade do hardware(Disco):");
+        }
         String especificidade = leitor.nextLine();
 
         // Cadastrar o tipo de hardware
-        System.out.println("Digite o tipo de hardware (ex: CPU, GPU, Memória):");
-        String tipoHardware = leitor.nextLine();
 
-        // Cadastrar o tipo de hardware no banco de dados
-        if (conexao.getDev()) {
-            con.update("INSERT INTO tipoHardware (tipo) VALUES (?)", tipoHardware);
-        } else {
-            con.update("INSERT INTO tipoHardware (tipo) VALUES (?)", tipoHardware);
 
-        }
+
         // Recuperar o ID do tipo de hardware recém-cadastrado
-        Integer fkTipoHardware;
-        if (conexao.getDev()) {
-            fkTipoHardware = con.queryForObject("SELECT MAX(idTipoHardware) FROM tipoHardware", Integer.class);
-
-        } else {
-            fkTipoHardware = con.queryForObject("SELECT MAX(idTipoHardware) FROM tipoHardware", Integer.class);
-
-        }
 
         // Cadastrar o hardware no banco de dados, incluindo fkTipoHardware
         if (conexao.getDev()) {
 
-            con.update("INSERT INTO hardware (fabricante, modelo, capacidade, especificidade, fkTipoHardware) VALUES (?, ?, ?, ?, ?)", fabricante, modelo, capacidade, especificidade, fkTipoHardware);
+            con.update("INSERT INTO hardware (fabricante, modelo, capacidade, especificidade, fkTipoHardware) VALUES (?, ?, ?, ?, ?)", fabricante, modelo, capacidade, especificidade, tipo);
         } else {
-            con.update("INSERT INTO hardware (fabricante, modelo, capacidade, especificidade, fkTipoHardware) VALUES (?, ?, ?, ?, ?)", fabricante, modelo, capacidade, especificidade, fkTipoHardware);
+            con.update("INSERT INTO hardware (fabricante, modelo, capacidade, especificidade, fkTipoHardware) VALUES (?, ?, ?, ?, ?)", fabricante, modelo, capacidade, especificidade, tipo);
         }
         // Recuperar o ID do hardware recém-cadastrado
         Integer idHardware;
@@ -495,13 +508,20 @@ public class AppHistorico {
         // Cadastrar componente
         System.out.println("Digite a porcentagem máxima para o componente (deixe em branco para usar o valor padrão):");
         String inputMax = leitor.nextLine();
-        Integer max = (inputMax.isEmpty()) ? null : Integer.parseInt(inputMax);
+        Integer max;
+        boolean verificaStringNula = inputMax.isEmpty();
+        if(verificaStringNula){
+            max= 60;
+        }else{
+            max= Integer.parseInt(inputMax);
+        }
+
 
         // Cadastrar o componente no banco de dados, incluindo fkTipoHardware
         if (conexao.getDev()) {
 
             con.update("INSERT INTO componente (max, fkMaquina, fkHardware) VALUES (?, ?, ?)", max, idMaquina, idHardware);
-        }else{
+        } else {
             con.update("INSERT INTO componente (max, fkMaquina, fkHardware) VALUES (?, ?, ?)", max, idMaquina, idHardware);
 
         }

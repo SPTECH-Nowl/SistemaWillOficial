@@ -7,7 +7,7 @@ import javax.swing.*;
 
 public class Conexao {
 
-    private Boolean dev = false;// true = desenvolvimento(MYSQL) |--||--| false = produção(SQL)
+    private Boolean dev = true;// true = desenvolvimento(MYSQL) |--||--| false = produção(SQL)
     private JdbcTemplate conexaoDoBanco;
 
     public Conexao() {
